@@ -9,8 +9,9 @@ import {
     Radio,
     RadioGroup,
     Typography,
+    Snackbar,
 } from '@material-ui/core';
-import clsx from 'clsx';
+import MuiAlert from '@material-ui/lab/Alert';
 
 const useStyle = makeStyles({
     root: {
@@ -24,12 +25,36 @@ const useStyle = makeStyles({
     card: {
         width: 200,
         height: 200,
+        cursor: 'pointer',
+        display: 'flex',
+        justifyContent: 'center',
+        alignItems: 'center',
+        margin: 20,
     },
-    selectedCard: {},
-    greenCard: {},
+    selectedCard: {
+        width: 200,
+        height: 200,
+        cursor: 'pointer',
+        boxShadow: '19px 24px 23px rgba(40, 152, 234, 0.25)',
+        display: 'flex',
+        justifyContent: 'center',
+        alignItems: 'center',
+        margin: 20,
+    },
+    greenCard: {
+        width: 200,
+        height: 200,
+        cursor: 'pointer',
+        backgroundColor: '#46A661',
+        display: 'flex',
+        justifyContent: 'center',
+        alignItems: 'center',
+        margin: 20,
+    },
     gridContainer: {
         width: '100%',
-        height: '100%',
+        height: '97%',
+        marginTop: '3%',
     },
     cardContainer: {
         display: 'flex',
@@ -44,34 +69,82 @@ const useStyle = makeStyles({
         maxWidth: 900,
         maxHeight: 700,
     },
+    paperTextWhite: {
+        color: '#fff',
+        fontSize: 20,
+        fontWeight: 600,
+    },
+    paperTextBlack: {
+        color: '#000',
+        fontSize: 20,
+        fontWeight: 600,
+    },
+    selectedRadioButton: {
+        backgroundColor: '#1D54E1',
+        margin: 2,
+        borderRadius: 7,
+        boxShadow: '7px 7px 32px 4px rgba(0, 0, 0, 0.25)',
+        '&:hover': {
+            backgroundColor: '#597acc',
+        },
+    },
+    unSelectedRadioButton: {
+        backgroundColor: '#090808',
+        margin: 2,
+        borderRadius: 7,
+        '&:hover': {
+            backgroundColor: '#595959',
+        },
+    },
+    radioButtonText: {
+        color: '#fff',
+    },
+    bottomContainer: {
+        marginTop: 30,
+    },
+    leaveButtonGrid: {
+        display: 'flex',
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
 });
 
-const RevealCard = ({ value, onClick, isSelected }) => {
-    const classes = useState();
+const Alert = (props) => <MuiAlert elevation={6} variant='filled' {...props} />;
 
-    const paperClassName = clsx(
-        classes.card,
-        isSelected ? classes.selectedCard : null,
-        value !== '?' ? classes.greenCard : null
-    );
-    const paperTextClassName = clsx(
-        value !== '?' ? classes.paperTextWhite : classes.paperTextBlack
-    );
+const RevealCard = ({ value, onClick, isSelected }) => {
+    const classes = useStyle();
 
     return (
-        <Paper className={paperClassName} onClick={onClick}>
-            <Typography className={paperTextClassName}>{value}</Typography>
+        <Paper
+            className={
+                // eslint-disable-next-line no-nested-ternary
+                value !== '?'
+                    ? classes.greenCard
+                    : isSelected
+                    ? classes.selectedCard
+                    : classes.card
+            }
+            onClick={onClick}
+        >
+            <Typography
+                className={
+                    value !== '?'
+                        ? classes.paperTextWhite
+                        : classes.paperTextBlack
+                }
+            >
+                {value}
+            </Typography>
         </Paper>
     );
 };
 
-const CustomRadioButtons = ({ value, onChange }) => {
-    const array = new Array(5);
+const CustomRadioButtons = ({ dataList, value, onChange }) => {
     const classes = useStyle();
 
     return (
         <div>
-            {array.map((item, index) => (
+            {dataList?.map((item, index) => (
                 <Button
                     className={
                         index + 1 === value
@@ -89,17 +162,43 @@ const CustomRadioButtons = ({ value, onChange }) => {
     );
 };
 
-const Game = ({ socket }) => {
+const Game = ({ socket, roomCode, requestLeaveGame }) => {
     const [currentUser, setCurrentUser] = useState();
     const [selectedCard, setSelectedCard] = useState(0);
     const [value, setValue] = useState(1);
+    const [openToast, setOpenToast] = useState(false);
+
+    const [errorText, setErrorText] = useState('');
+    const [severity, setSeverity] = useState('error');
 
     useEffect(() => {
+        socket.emit('currentUser', roomCode);
         socket.on('currentUser', (data) => {
+            console.log('current User', data);
             setCurrentUser(data);
+            if (data.log.length > 0) {
+                if (data.log[data.log.length - 1].result === 0) {
+                    setErrorText('Hurray! You got it right');
+                    setSeverity('success');
+                } else {
+                    setErrorText(
+                        `Sorry! Card ${
+                            data.log[data.log.length - 1].value
+                        } is in ${
+                            data.log[data.log.length - 1].result === 1
+                                ? 'right'
+                                : 'left'
+                        } of the current card`
+                    );
+                    setSeverity('error');
+                }
+                setOpenToast(true);
+            }
         });
 
-        return socket.off('currentUser');
+        return () => {
+            socket.off('currentUser');
+        };
     }, []);
 
     const classes = useStyle();
@@ -110,39 +209,56 @@ const Game = ({ socket }) => {
     };
 
     const requestGuess = () => {
-        socket.emit('move', { index: selectedCard, value });
+        socket.emit('move', { room: roomCode, index: selectedCard, value });
     };
 
     return (
         <Container className={classes.root}>
+            <Snackbar
+                open={openToast}
+                autoHideDuration={6000}
+                onClose={() => setOpenToast(false)}
+            >
+                <Alert onClose={() => setOpenToast(false)} severity={severity}>
+                    {errorText}
+                </Alert>
+            </Snackbar>
             <Grid container className={classes.gridContainer}>
                 <Grid item xs={12}>
-                    <Typography>
-                        Remianing Moves: {currentUser?.remainingMoves}
+                    <Typography style={{ textAlign: 'end' }}>
+                        Remianing Moves: {currentUser?.remainingMove}
                     </Typography>
                 </Grid>
                 <Grid item xs={12} className={classes.cardContainer}>
                     {currentUser?.answer.map((item, index) => (
                         <RevealCard
+                            // eslint-disable-next-line react/no-array-index-key
+                            key={index}
                             value={item}
                             onClick={() => setSelectedCard(index)}
                             isSelected={index === selectedCard}
                         />
                     ))}
                 </Grid>
-                <Grid container item xs={12}>
-                    <Grid item sm={12} md={4}>
+                <Grid
+                    container
+                    item
+                    xs={12}
+                    className={classes.bottomContainer}
+                >
+                    <Grid item xs={12} md={4}>
                         <Typography>
                             Select the value for card {selectedCard + 1}
                         </Typography>
                     </Grid>
-                    <Grid item sm={12} md={4}>
+                    <Grid item xs={12} md={4}>
                         <CustomRadioButtons
+                            dataList={currentUser?.answer}
                             value={value}
                             onChange={(val) => setValue(val)}
                         />
                     </Grid>
-                    <Grid item sm={12} md={4}>
+                    <Grid item xs={12} md={4}>
                         <Button
                             variant='contained'
                             color='primary'
@@ -151,6 +267,15 @@ const Game = ({ socket }) => {
                             Guess
                         </Button>
                     </Grid>
+                </Grid>
+                <Grid item xs={12} className={classes.leaveButtonGrid}>
+                    <Button
+                        variant='contained'
+                        color='secondary'
+                        onClick={() => requestLeaveGame()}
+                    >
+                        Leave
+                    </Button>
                 </Grid>
             </Grid>
         </Container>

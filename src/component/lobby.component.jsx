@@ -21,16 +21,18 @@ const useStyle = makeStyles({
         height: '90%',
     },
     activeStatusIcon: {
-        width: 10,
-        height: 10,
+        width: 12,
+        height: 12,
         borderRadius: '50%',
         backgroundColor: 'green',
+        marginRight: 10,
     },
     inActiveStatusIcon: {
-        width: 10,
-        height: 10,
+        width: 12,
+        height: 12,
         borderRadius: '50%',
         backgroundColor: 'red',
+        marginRight: 10,
     },
     userContainer: {},
     userItem: {
@@ -49,7 +51,7 @@ const StatusIcon = ({ status }) => {
     const classes = useStyle();
 
     return (
-        <span
+        <div
             className={
                 status === 'ready'
                     ? classes.activeStatusIcon
@@ -59,17 +61,50 @@ const StatusIcon = ({ status }) => {
     );
 };
 
-const Leaderboard = ({ data }) => <div>Leaderboard</div>;
+const Leaderboard = ({ data }) => (
+    <div>
+        <h3 style={{ textAlign: 'center' }}>Leader Board</h3>
+        <div>
+            {data?.length > 0 ? (
+                data.map((item) => (
+                    <p>
+                        <span>{item.user}</span>
+                        <span style={{ marginLeft: 20 }}>
+                            {item.bestReveal}
+                        </span>
+                        <span style={{ marginLeft: 20 }}>{item.bestMove}</span>
+                    </p>
+                ))
+            ) : (
+                <p
+                    style={{
+                        textAlign: 'center',
+                        color: 'gray',
+                        fontWeight: 'bold',
+                        marginTop: 40,
+                    }}
+                >
+                    Nothing to show
+                </p>
+            )}
+        </div>
+    </div>
+);
 
-const Lobby = ({ socket }) => {
+const Lobby = ({ socket, roomCode, requestLeave }) => {
+    console.log('roomcode', roomCode);
     const classes = useStyle();
 
     const [room, setRoom] = useState();
     const [currentUser, setCurrentUser] = useState();
 
     useEffect(() => {
+        console.log('use effect called');
+        socket.emit('update', roomCode);
+        socket.emit('currentUser', roomCode);
         socket.on('update', (data) => {
             setRoom(data);
+            console.log('update', data);
         });
 
         socket.on('currentUser', (data) => {
@@ -83,42 +118,81 @@ const Lobby = ({ socket }) => {
     }, []);
 
     const startGame = () => {
-        socket.emit('readytoStartGame');
+        console.log('Start Game called', roomCode, currentUser);
+        socket.emit('readytoStartGame', {
+            room: roomCode,
+            user: currentUser,
+        });
     };
-
-    const handleLeaveRoom = () => {};
 
     return (
         <Container className={classes.root}>
             <Grid container className={classes.content}>
                 <Grid container item xs={12}>
-                    <Grid item xs={6}>
-                        <Typography>Room Code : {room?.code}</Typography>
+                    <Grid
+                        item
+                        xs={6}
+                        style={{
+                            display: 'flex',
+                            justifyContent: 'flex-start',
+                        }}
+                    >
+                        <h2>Room Code : {room?.code}</h2>
                     </Grid>
-                    <Grid item xs={6}>
+                    <Grid
+                        item
+                        xs={6}
+                        style={{
+                            display: 'flex',
+                            justifyContent: 'flex-end',
+                            alignItems: 'end',
+                        }}
+                    >
                         <Button
                             variant='contained'
                             color='secondary'
-                            onClick={() => handleLeaveRoom()}
+                            onClick={() => requestLeave()}
                         >
                             Leave Room
                         </Button>
                     </Grid>
                 </Grid>
                 <Grid container item xs={12}>
-                    <Grid sm={0} md={4} />
-                    <Grid sm={12} md={4}>
+                    <Grid item sm={12} md={4} />
+                    <Grid item sm={12} md={4}>
                         <div className={classes.userContainer}>
                             {room &&
                                 room.users.map((user) => (
-                                    <div key={user.socketId}>
+                                    <div
+                                        key={user.socketId}
+                                        style={{
+                                            display: 'flex',
+                                            flexDirection: 'row',
+                                            justifyContent: 'center',
+                                        }}
+                                    >
                                         <StatusIcon status={user.status} />
-                                        <Typography> {user.name}</Typography>
-                                        <Typography>{user.status}</Typography>
+                                        <Typography style={{ marginRight: 40 }}>
+                                            {user.name}
+                                        </Typography>
+                                        <Typography
+                                            style={{
+                                                fontStyle: 'italic',
+                                            }}
+                                        >
+                                            {user.status}
+                                        </Typography>
                                     </div>
                                 ))}
                         </div>
-                        <div>
+                        <div
+                            style={{
+                                display: 'flex',
+                                flexDirection: 'row',
+                                justifyContent: 'center',
+                                marginTop: 30,
+                            }}
+                        >
                             <Button
                                 variant='contained'
                                 color='primary'
@@ -128,7 +202,12 @@ const Lobby = ({ socket }) => {
                             </Button>
                         </div>
                     </Grid>
-                    <Grid sm={12} md={4} className={classes.leaderboardGrid}>
+                    <Grid
+                        item
+                        sm={12}
+                        md={4}
+                        className={classes.leaderboardGrid}
+                    >
                         <Leaderboard data={room?.leaderboard} />
                     </Grid>
                 </Grid>
