@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import {
     Button,
     Container,
@@ -18,7 +18,7 @@ const useStyle = makeStyles({
     },
     content: {
         width: '90%',
-        maxWidth: 600,
+        height: '90%',
     },
     activeStatusIcon: {
         width: 10,
@@ -45,44 +45,92 @@ const useStyle = makeStyles({
     },
 });
 
-const StatusIcon = ({ isReady }) => {
+const StatusIcon = ({ status }) => {
     const classes = useStyle();
 
     return (
         <span
             className={
-                isReady ? classes.activeStatusIcon : classes.inActiveStatusIcon
+                status === 'ready'
+                    ? classes.activeStatusIcon
+                    : classes.inActiveStatusIcon
             }
         />
     );
 };
 
-const Lobby = ({ users, isAdmin }) => {
+const Leaderboard = ({ data }) => <div>Leaderboard</div>;
+
+const Lobby = ({ socket }) => {
     const classes = useStyle();
+
+    const [room, setRoom] = useState();
+    const [currentUser, setCurrentUser] = useState();
+
+    useEffect(() => {
+        socket.on('update', (data) => {
+            setRoom(data);
+        });
+
+        socket.on('currentUser', (data) => {
+            setCurrentUser(data);
+        });
+
+        return () => {
+            socket.off('update');
+            socket.off('currentUser');
+        };
+    }, []);
+
+    const startGame = () => {
+        socket.emit('readytoStartGame');
+    };
+
+    const handleLeaveRoom = () => {};
 
     return (
         <Container className={classes.root}>
             <Grid container className={classes.content}>
-                <Grid container item xs={12} className={classes.userContainer}>
-                    {users &&
-                        users.map((user) => (
-                            <Grid
-                                item
-                                xs={12}
-                                key={user.socketId}
-                                className={classes.userItem}
-                            >
-                                <StatusIcon isReady={user.status} />
-                                <Typography component='span'>
-                                    {user.name}
-                                </Typography>
-                            </Grid>
-                        ))}
+                <Grid container item xs={12}>
+                    <Grid item xs={6}>
+                        <Typography>Room Code : {room?.code}</Typography>
+                    </Grid>
+                    <Grid item xs={6}>
+                        <Button
+                            variant='contained'
+                            color='secondary'
+                            onClick={() => handleLeaveRoom()}
+                        >
+                            Leave Room
+                        </Button>
+                    </Grid>
                 </Grid>
-                <Grid item xs={12} className={classes.button}>
-                    <Button variant='outlined' color='primary'>
-                        {isAdmin ? 'Start Game' : 'Ready'}
-                    </Button>
+                <Grid container item xs={12}>
+                    <Grid sm={0} md={4} />
+                    <Grid sm={12} md={4}>
+                        <div className={classes.userContainer}>
+                            {room &&
+                                room.users.map((user) => (
+                                    <div key={user.socketId}>
+                                        <StatusIcon status={user.status} />
+                                        <Typography> {user.name}</Typography>
+                                        <Typography>{user.status}</Typography>
+                                    </div>
+                                ))}
+                        </div>
+                        <div>
+                            <Button
+                                variant='contained'
+                                color='primary'
+                                onClick={() => startGame()}
+                            >
+                                {currentUser?.isAdmin ? 'Start Game' : 'Ready'}
+                            </Button>
+                        </div>
+                    </Grid>
+                    <Grid sm={12} md={4} className={classes.leaderboardGrid}>
+                        <Leaderboard data={room?.leaderboard} />
+                    </Grid>
                 </Grid>
             </Grid>
         </Container>
