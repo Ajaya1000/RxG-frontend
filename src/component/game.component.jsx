@@ -23,8 +23,10 @@ const useStyle = makeStyles({
         alignItems: 'center',
     },
     card: {
-        width: 200,
-        height: 200,
+        width: '30vw',
+        height: '30vw',
+        maxWidth: 200,
+        maxHeight: 200,
         cursor: 'pointer',
         display: 'flex',
         justifyContent: 'center',
@@ -32,8 +34,10 @@ const useStyle = makeStyles({
         margin: 20,
     },
     selectedCard: {
-        width: 200,
-        height: 200,
+        width: '30vw',
+        height: '30vw',
+        maxWidth: 200,
+        maxHeight: 200,
         cursor: 'pointer',
         boxShadow: '19px 24px 23px rgba(40, 152, 234, 0.25)',
         display: 'flex',
@@ -42,8 +46,10 @@ const useStyle = makeStyles({
         margin: 20,
     },
     greenCard: {
-        width: 200,
-        height: 200,
+        width: '30vw',
+        height: '30vw',
+        maxWidth: 200,
+        maxHeight: 200,
         cursor: 'pointer',
         backgroundColor: '#46A661',
         display: 'flex',
@@ -246,19 +252,40 @@ const Game = ({ socket, roomCode, requestLeaveGame }) => {
                     xs={12}
                     className={classes.bottomContainer}
                 >
-                    <Grid item xs={12} md={4}>
-                        <Typography>
+                    <Grid
+                        container
+                        item
+                        xs={12}
+                        md={4}
+                        justify='center'
+                        alignItems='center'
+                    >
+                        <Typography style={{ textAlign: 'center' }}>
                             Select the value for card {selectedCard + 1}
                         </Typography>
                     </Grid>
-                    <Grid item xs={12} md={4}>
+                    <Grid
+                        container
+                        item
+                        xs={12}
+                        md={4}
+                        justify='center'
+                        alignItems='center'
+                    >
                         <CustomRadioButtons
                             dataList={currentUser?.answer}
                             value={value}
                             onChange={(val) => setValue(val)}
                         />
                     </Grid>
-                    <Grid item xs={12} md={4}>
+                    <Grid
+                        container
+                        item
+                        xs={12}
+                        md={4}
+                        justify='center'
+                        alignItems='center'
+                    >
                         <Button
                             variant='contained'
                             color='primary'
