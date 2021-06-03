@@ -12,6 +12,33 @@ import {
     Radio,
 } from '@material-ui/core';
 import { useHistory } from 'react-router-dom';
+import * as randomString from 'randomstring';
+import {
+    uniqueNamesGenerator,
+    NumberDictionary,
+    adjectives,
+    names,
+} from 'unique-names-generator';
+
+const numberDictionary = NumberDictionary.generate({ min: 100, max: 999 });
+const charDictionary = ['@', '#', '_'];
+
+/**
+ * Creates a random user name
+ */
+const giveRandomUserName = () =>
+    uniqueNamesGenerator({
+        dictionaries: [adjectives, names, charDictionary, numberDictionary],
+        separator: '',
+        style: 'capital',
+        length: 4,
+    });
+
+/**
+ * Creates a random 7 character sting code
+ */
+const giveRandomRoomCode = () =>
+    randomString.generate({ length: 7, capitalization: 'uppercase' });
 
 const useStyles = makeStyles({
     root: {
@@ -63,17 +90,17 @@ const useStyles = makeStyles({
 const Home = () => {
     const classes = useStyles();
 
-    const [userName, setUserName] = useState('');
+    const [userName, setUserName] = useState(giveRandomUserName());
+
     const [existingRoomCode, setExistingRoomCode] = useState('');
-    const [newRoomCode, setNewRoomCode] = useState('');
+
+    const [newRoomCode, setNewRoomCode] = useState(giveRandomRoomCode());
+
     const [level, setLevel] = useState(0);
 
     const history = useHistory();
 
     const requestJoin = () => {
-        console.log(userName);
-        console.log(existingRoomCode);
-
         history.push('/game/', {
             type: 'join',
             username: userName,
@@ -81,9 +108,6 @@ const Home = () => {
         });
     };
     const requestCreate = () => {
-        console.log(userName);
-        console.log(newRoomCode);
-        console.log(level);
         history.push('/game/', {
             type: 'create',
             username: userName,
@@ -113,7 +137,10 @@ const Home = () => {
                     </Grid>
 
                     <Grid className={classes.item} item xs={12} md={6}>
-                        <div className={classes.inputGroup} component='div'>
+                        <div
+                            className={classes.inputGroupCentered}
+                            component='div'
+                        >
                             <Typography className={classes.label}>
                                 Existing Room Code :
                             </Typography>
@@ -136,7 +163,10 @@ const Home = () => {
                         </div>
                     </Grid>
                     <Grid className={classes.item} item xs={12} md={6}>
-                        <div className={classes.inputGroup} component='div'>
+                        <div
+                            className={classes.inputGroupCentered}
+                            component='div'
+                        >
                             <Typography className={classes.label}>
                                 New Room Code :
                             </Typography>
@@ -146,7 +176,10 @@ const Home = () => {
                                 onChange={(e) => setNewRoomCode(e.target.value)}
                             />
                         </div>
-                        <div className={classes.inputGroup} component='div'>
+                        <div
+                            className={classes.inputGroupCentered}
+                            component='div'
+                        >
                             <Typography className={classes.label}>
                                 Level :
                             </Typography>
