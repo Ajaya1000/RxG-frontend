@@ -218,6 +218,7 @@ const Game = ({ socket, roomCode, requestLeaveGame }) => {
                 open={openToast}
                 autoHideDuration={6000}
                 onClose={() => setOpenToast(false)}
+                anchorOrigin={{ horizontal: 'center', vertical: 'top' }}
             >
                 <Alert onClose={() => setOpenToast(false)} severity={severity}>
                     {errorText}
