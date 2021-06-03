@@ -8,8 +8,6 @@ import Lobby from '../component/lobby.component';
 
 const ENDPOINT = 'https://serene-plateau-46910.herokuapp.com/';
 
-const useQuery = () => new URLSearchParams(useLocation().search);
-
 const Entry = () => {
     const [isGameStarted, setGameStarted] = useState(false);
     const socket = useRef(socketIOClient(ENDPOINT)).current;
@@ -29,7 +27,6 @@ const Entry = () => {
 
     useEffect(() => {
         const historyState = history.location.state;
-        console.log(historyState);
 
         socket.emit('joinRoom', historyState);
 
@@ -39,9 +36,10 @@ const Entry = () => {
                 history.push('/', {
                     error: e.val,
                 });
-
-            // setErrorText(e.value);
-            // setOpenToast(true);
+            if (e.type === 'notReady') {
+                setErrorText(e.value);
+                setOpenToast(true);
+            }
         });
 
         socket.on('readytoStartGame', () => setGameStarted(true));
@@ -50,7 +48,6 @@ const Entry = () => {
     }, []);
 
     useEffect(() => {
-        console.log('emitted');
         if (history.location.state) {
             socket.emit('update', history.location.state.room);
             socket.emit('currentUser', history.location.state.room);
