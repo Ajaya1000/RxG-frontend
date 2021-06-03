@@ -18,9 +18,16 @@ const Entry = () => {
     const [openToast, setOpenToast] = useState(false);
     const [errorText, setErrorText] = useState('');
 
-    useEffect(() => {
-        // if (history.location.state === undefined) history.replace('/');
+    const handleLeave = () => {
+        history.push('/');
+    };
+    const handleLeaveGame = () => {
+        setGameStarted(false);
+        if (history.location.state)
+            socket.emit('exitGame', history.location.state.room);
+    };
 
+    useEffect(() => {
         const historyState = history.location.state;
         console.log(historyState);
 
@@ -44,17 +51,11 @@ const Entry = () => {
 
     useEffect(() => {
         console.log('emitted');
-        socket.emit('update', history.location.state.room);
-        socket.emit('currentUser', history.location.state.room);
+        if (history.location.state) {
+            socket.emit('update', history.location.state.room);
+            socket.emit('currentUser', history.location.state.room);
+        }
     }, [isGameStarted]);
-
-    const handleLeave = () => {
-        history.push('/');
-    };
-    const handleLeaveGame = () => {
-        setGameStarted(false);
-        socket.emit('exitGame', history.location.state.room);
-    };
 
     return (
         <>
@@ -71,14 +72,14 @@ const Entry = () => {
             {isGameStarted && (
                 <Game
                     socket={socket}
-                    roomCode={history.location.state.room}
+                    roomCode={history.location.state?.room}
                     requestLeaveGame={() => handleLeaveGame()}
                 />
             )}
             {!isGameStarted && (
                 <Lobby
                     socket={socket}
-                    roomCode={history.location.state.room}
+                    roomCode={history.location.state?.room}
                     requestLeave={() => handleLeave()}
                 />
             )}
