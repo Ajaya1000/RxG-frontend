@@ -36,7 +36,7 @@ const Entry = () => {
                 history.push('/', {
                     error: e.val,
                 });
-            if (e.type === 'notReady') {
+            if (e.type === 'notReady' || e.type === 'info') {
                 setErrorText(e.value);
                 setOpenToast(true);
             }
