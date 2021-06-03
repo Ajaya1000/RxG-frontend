@@ -172,7 +172,6 @@ const Game = ({ socket, roomCode, requestLeaveGame }) => {
     const [severity, setSeverity] = useState('error');
 
     useEffect(() => {
-        socket.emit('currentUser', roomCode);
         socket.on('currentUser', (data) => {
             console.log('current User', data);
             setCurrentUser(data);

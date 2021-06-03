@@ -26,9 +26,6 @@ const Entry = () => {
 
         socket.emit('joinRoom', historyState);
 
-        socket.emit('update', history.location.state.room);
-        socket.emit('currentUser', history.location.state.room);
-
         socket.on('error', (e) => {
             console.log('error', e);
             if (e.type === 'sessionError')
@@ -36,14 +33,20 @@ const Entry = () => {
                     error: e.val,
                 });
 
-            setErrorText(e.value);
-            setOpenToast(true);
+            // setErrorText(e.value);
+            // setOpenToast(true);
         });
 
         socket.on('readytoStartGame', () => setGameStarted(true));
 
         return () => socket.disconnect();
     }, []);
+
+    useEffect(() => {
+        console.log('emitted');
+        socket.emit('update', history.location.state.room);
+        socket.emit('currentUser', history.location.state.room);
+    }, [isGameStarted]);
 
     const handleLeave = () => {
         history.push('/');
