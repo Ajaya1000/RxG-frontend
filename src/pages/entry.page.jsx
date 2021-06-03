@@ -26,6 +26,9 @@ const Entry = () => {
 
         socket.emit('joinRoom', historyState);
 
+        socket.emit('update', history.location.state.room);
+        socket.emit('currentUser', history.location.state.room);
+
         socket.on('error', (e) => {
             console.log('error', e);
             if (e.type === 'sessionError')

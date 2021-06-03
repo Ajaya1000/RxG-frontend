@@ -99,9 +99,7 @@ const Lobby = ({ socket, roomCode, requestLeave }) => {
     const [currentUser, setCurrentUser] = useState();
 
     useEffect(() => {
-        console.log('use effect called');
-        socket.emit('update', roomCode);
-        socket.emit('currentUser', roomCode);
+        console.log('use effect called', roomCode);
         socket.on('update', (data) => {
             setRoom(data);
             console.log('update', data);
