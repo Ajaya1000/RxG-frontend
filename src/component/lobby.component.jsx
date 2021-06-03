@@ -45,6 +45,22 @@ const useStyle = makeStyles({
         flexDirection: 'row',
         justifyContent: 'center',
     },
+    tableContainer: {
+        display: 'flex',
+        justifyContent: 'center',
+    },
+    table: {
+        border: '1px solid #000',
+    },
+    tableRow: {
+        // border: '1px solid #000'
+    },
+    tableHead: {
+        border: '1px solid #000',
+    },
+    tableData: {
+        border: '1px solid #000',
+    },
 });
 
 const StatusIcon = ({ status }) => {
@@ -61,20 +77,58 @@ const StatusIcon = ({ status }) => {
     );
 };
 
-const Leaderboard = ({ data }) => (
-    <div>
-        <h3 style={{ textAlign: 'center' }}>Leader Board</h3>
+const Leaderboard = ({ data }) => {
+    const classes = useStyle();
+
+    const sortedData = (arr) => {
+        arr.sort(
+            (a, b) =>
+                100 * (b.bestReveal - a.bestReveal) - (b.bestMove - a.bestMove)
+        );
+        console.log(
+            '🚀 ~ file: lobby.component.jsx ~ line 84 ~ sortedData ~ arr',
+            arr
+        );
+        return arr;
+    };
+
+    return (
         <div>
+            <h2 style={{ textAlign: 'center' }}>Leader Board</h2>
+
             {data?.length > 0 ? (
-                data.map((item) => (
-                    <p>
-                        <span>{item.user}</span>
-                        <span style={{ marginLeft: 20 }}>
-                            {item.bestReveal}
-                        </span>
-                        <span style={{ marginLeft: 20 }}>{item.bestMove}</span>
-                    </p>
-                ))
+                <div className={classes.tableContainer}>
+                    <table className={classes.table}>
+                        <tr className={classes.tableRow}>
+                            <th className={classes.tableHead}> User</th>
+                            <th className={classes.tableHead}>Best Reveal </th>
+                            <th className={classes.tableHead}>Best Move</th>
+                        </tr>
+
+                        {sortedData([...data]).map((item) => (
+                            <tr
+                                className={classes.tableRow}
+                                key={`${item.user}${item.bestReveal}${item.bestMove}`}
+                            >
+                                <td className={classes.tableData}>
+                                    {item.user}
+                                </td>
+                                <td
+                                    className={classes.tableData}
+                                    style={{ marginLeft: 20 }}
+                                >
+                                    {item.bestReveal}
+                                </td>
+                                <td
+                                    className={classes.tableData}
+                                    style={{ marginLeft: 20 }}
+                                >
+                                    {item.bestMove}
+                                </td>
+                            </tr>
+                        ))}
+                    </table>
+                </div>
             ) : (
                 <p
                     style={{
@@ -88,8 +142,8 @@ const Leaderboard = ({ data }) => (
                 </p>
             )}
         </div>
-    </div>
-);
+    );
+};
 
 const Lobby = ({ socket, roomCode, requestLeave }) => {
     console.log('roomcode', roomCode);
@@ -155,7 +209,7 @@ const Lobby = ({ socket, roomCode, requestLeave }) => {
                         </Button>
                     </Grid>
                 </Grid>
-                <Grid container item xs={12}>
+                <Grid container item xs={12} justify='center'>
                     <Grid item sm={12} md={4} />
                     <Grid item sm={12} md={4}>
                         <div className={classes.userContainer}>
